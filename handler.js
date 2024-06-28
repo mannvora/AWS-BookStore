@@ -18,6 +18,7 @@ const outputResponse = (statusCode, message) => {
 }
 
 exports.createNote = async (event, context, callback) => {
+  console.
   context.callbackWaitsForEmptyEventLoop = false;
   const data = JSON.parse(event.body);
 
@@ -45,9 +46,13 @@ exports.createNote = async (event, context, callback) => {
 
 exports.updateNote = async (event, context, callback) => {
   context.callbackWaitsForEmptyEventLoop = false;
+  console.log("event", event);
   if (event.body) {
     const data = JSON.parse(event.body);
-    const notesId = data.id;
+    const notesId = data.body.id;
+
+    console.log("data is: ", data);
+    console.log("id is:" , notesId);
 
     try {
       const params = {

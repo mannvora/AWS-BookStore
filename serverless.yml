@@ -71,6 +71,8 @@ functions:
 plugins:
   - serverless-iam-roles-per-function
 
+## You can add cloudformation resources here
+
 resources:
  Resources:
    notesTable:
@@ -84,4 +86,5 @@ resources:
        KeySchema:
          - AttributeName: notesId
            KeyType: HASH
+
 
