@@ -1,12 +1,37 @@
-notesTable:
-     Type: AWS::DynamoDB::Table
-     Properties:
-       TableName: Notes
-       BillingMode: PAY_PER_REQUEST
-       AttributeDefinitions:
-         - AttributeName: notesId
-           AttributeType: S
-       KeySchema:
-         - AttributeName: notesId
-           KeyType: HASH
+#DynamoDB
 
+notesTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: Notes
+    BillingMode: PAY_PER_REQUEST
+    AttributeDefinitions:
+      - AttributeName: notesId
+        AttributeType: S
+    KeySchema:
+      - AttributeName: notesId
+        KeyType: HASH
+
+#Cognito User Pool
+# Here Ref is an intrinsic function which is used to get value from another resource provided by AWS (Attribute Mapping)
+
+cognitoUserPool:  
+  Type: AWS::Cognito::UserPool
+  Properties:
+    UserPoolName: MyNotesUP
+
+# User Pool Web Client
+
+cognitoUserPoolWebClient:
+  Type: AWS::Cognito::UserPoolClient
+  Properties:
+    UserPoolId: !Ref cognitoUserPool
+    ClientName: web
+
+# Cognito User Pool Domain
+
+cognitoUserPoolDomain:
+  Type: AWS::Cognito::UserPoolDomain
+  Properties:
+    UserPoolId: !Ref cognitoUserPool
+    Domain: mynotesuserpool1720

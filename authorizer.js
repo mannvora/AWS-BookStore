@@ -1,10 +1,10 @@
 const { CognitoJwtVerifier } = require("aws-jwt-verify");
 
 const jwtVerifier = CognitoJwtVerifier.create({
-    userPoolId: "us-east-1_TS7uqnCjG",
+    userPoolId: process.env.USER_POOL_ID,
     tokenUse: "id",
-    clientId: "13a9jujr1ns7p0o4k29ljghedh"
-})
+    clientId: process.env.CLIENT_ID
+});
 
 const generatePolicy = (prinicipalId, effect, resource) => {
     console.log("Effect and resource are: `", effect, resource);

@@ -74,17 +74,6 @@ plugins:
 ## You can add cloudformation resources here
 
 resources:
- Resources:
-   notesTable:
-     Type: AWS::DynamoDB::Table
-     Properties:
-       TableName: Notes
-       BillingMode: PAY_PER_REQUEST
-       AttributeDefinitions:
-         - AttributeName: notesId
-           AttributeType: S
-       KeySchema:
-         - AttributeName: notesId
-           KeyType: HASH
-
+  Resources:
+    ${file(resources.yml)}
 
