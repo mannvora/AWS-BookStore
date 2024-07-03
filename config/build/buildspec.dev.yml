@@ -7,7 +7,7 @@ phases:
       nodejs: 20
     commands:
       - echo installing serverless CLI
-      - npm i serverless 
+      - npm i serverless
       - npm install
   build:
     on-failure: ABORT
@@ -15,6 +15,7 @@ phases:
       - echo running tests
       - npm test
       - echo packaging service
+      - npm i serverless
       - serverless package --package my-artifact --stage dev
 artifacts:
   files:
