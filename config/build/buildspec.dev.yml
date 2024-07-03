@@ -1,0 +1,25 @@
+version: 0.2
+        
+phases:
+  install:
+    on-failure: ABORT
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo installing serverless CLI
+      - npm i serverless 
+      - cd note-taking-app
+      - npm install
+  build:
+    on-failure: ABORT
+    commands:
+      - echo running tests
+      - npm test
+      - echo packaging service
+      - serverless package --package my-artifact --stage dev
+artifacts:
+  files:
+    - my-artifact/*
+  name: MyprojectArtifacts
+  paths:
+    - 'note-taking-app/node_modules/**/*'
