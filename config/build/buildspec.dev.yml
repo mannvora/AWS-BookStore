@@ -7,8 +7,18 @@ phases:
       nodejs: 20
     commands:
       - echo Installing dependencies
+      - apt-get update && apt-get install -y jq
       - npm ci
       - npm install -g serverless
+
+  pre_build:
+    commands:
+      - echo Retrieving AWS credentials from Secrets Manager
+      - SECRET=$(aws secretsmanager get-secret-value --secret-id iam/pragrammaticuser/secretkey --query SecretString --output text)
+      - export AWS_ACCESS_KEY_ID=$(echo $SECRET | jq -r .\"access-key\")
+      - export AWS_SECRET_ACCESS_KEY=$(echo $SECRET | jq -r .\"secret-access-key\")
+      - echo Configuring Serverless credentials
+      - serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
 
   build:
     on-failure: ABORT
