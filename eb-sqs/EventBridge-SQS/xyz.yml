@@ -1,0 +1,57 @@
+org: mannvora
+app: eb-sqs
+service: EventBridge-SQS
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+functions:
+  putEventsLambda:
+    handler: functions/putEvents.handler
+    environment: 
+      EventBusName: !Ref EventBus
+    events:
+      - http:
+          path: /generate
+          method: post
+
+resources:
+  Resources:
+    EventBus:
+      Type: AWS::Events::EventBus
+      Properties:
+        Name: QR_EVENT_BUS
+
+    CloudWatchRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: 
+                  - apigateway.amazonaws.com
+              Action: 'sts:AssumeRole'
+        Policies:
+          - PolicyName: ApiGatewayAccountCloudWatchPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: arn:aws:logs:*:*:*
+
+    Account:
+      Type: 'AWS::ApiGateway::Account'
+      Properties:
+        CloudWatchRoleArn: !GetAtt CloudWatchRole.Arn
+
+  Outputs:
+    EventBusName:
+      Value: !Ref EventBus

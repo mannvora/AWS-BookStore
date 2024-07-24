@@ -1,0 +1,36 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: mannvora
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: backend-eb-sqs
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: eb-sqs
+
+custom:
+  cloudwatchRoles:
+    nonprod: arn:aws:cloudformation:us-east-1:767397723820:stack/Serverless-Inc-Role-Stack/76708760-456e-11ef-bd08-0ef047ebb8a9
+    prod: arn:aws:cloudformation:us-east-1:767397723820:stack/Serverless-Inc-Role-Stack/76708760-456e-11ef-bd08-0ef047ebb8a9
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stage: dev
+  region: us-east-1
+  apiGateway:
+    shouldStartNameWithService: true
+    cloudWatchRoleArn: arn:aws:cloudformation:us-east-1:767397723820:stack/Serverless-Inc-Role-Stack/76708760-456e-11ef-bd08-0ef047ebb8a9
+
+functions:
+  putEventsLambda:
+    handler: functions/putEvents.handler
+    environment: 
+      EventBusName: !Ref EventBus
+    events:
+      - http:
+          path: /generate
+          method: post
+
+resources:
+  Resources: ${file(resources.yml)}
+  Outputs:
+    EventBusName:
+      Value: !Ref EventBus

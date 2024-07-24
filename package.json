@@ -10,7 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "aws-jwt-verify": "^4.0.1",
-    "aws-sdk": "^2.1632.0"
+    "aws-sdk": "^2.1632.0",
+    "serverless": "^4.1.12"
   },
   "devDependencies": {
     "serverless-iam-roles-per-function": "^3.2.0"
