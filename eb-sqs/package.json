@@ -10,6 +10,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "serverless": "^4.1.12"
+    "aws-sdk": "^2.1664.0",
+    "serverless": "^3.39.0",
+    "serverless-apigateway-service-proxy": "^2.2.1"
   }
 }

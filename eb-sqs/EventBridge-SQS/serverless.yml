@@ -1,13 +1,38 @@
 org: mannvora
 app: eb-sqs
 service: EventBridge-SQS
-frameworkVersion: '3'
+frameworkVersion: '4'
 
 provider:
   name: aws
   runtime: nodejs18.x
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - events:PutEvents
+          Resource: !GetAtt EventBus.Arn
+
+custom:
+  apiGatewayServiceProxies:
+    - eventbridge:
+        path: /eventbridge
+        method: post
+        source: 'fuel-app'
+        detailType: 'user-signup'
+        eventBusName: { Ref: EventBus}
+        cors: true
 
 functions:
+  processEventLambda:
+    handler: functions/processEvent.handler
+    events:
+      - sqs:
+          arn: !GetAtt TargetSQS.Arn
+          batchSize: 10
+          functionResponseType: "ReportBatchItemFailures"
+
   putEventsLambda:
     handler: functions/putEvents.handler
     environment:
@@ -23,6 +48,47 @@ resources:
       Type: AWS::Events::EventBus
       Properties:
         Name: QR_EVENT_BUS
+    
+    TargetSQS:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: QR_MESSAGE_QUEUE
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt TargetDLQ.Arn
+          maxReceiveCount: 1
+
+    TargetDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: QR_MESSAGE_DLQ
+
+    TargetSQSRule:
+      Type: AWS::Events::Rule
+      Properties:
+        EventBusName: !Ref EventBus
+        EventPattern:
+          source:
+            - "fuel-app"
+          detail-type:
+            - "user-signup"
+        Targets:
+          - Arn: !GetAtt TargetSQS.Arn
+            Id: qr-stage-bus-target-sqs-${sls:stage}
+
+    TargetSQSPolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - !Ref TargetSQS
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "sqs:SendMessage"
+              Resource: !GetAtt TargetSQS.Arn
+              Principal: 
+                Service: events.amazonaws.com
 
     CloudWatchRole:
       Type: AWS::IAM::Role
@@ -47,3 +113,6 @@ resources:
   Outputs:
     EventBusName:
       Value: !Ref EventBus
+
+plugins:
+  - serverless-apigateway-service-proxy

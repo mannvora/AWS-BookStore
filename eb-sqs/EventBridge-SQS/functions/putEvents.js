@@ -1,30 +1,43 @@
-const EventBridge = require("aws-sdk/clients/eventbridge");
+const { EventBridgeClient, PutEventsCommand } = require("@aws-sdk/client-eventbridge");
 
 const EVENT_BUS_NAME = "QR_EVENT_BUS";
-
-let eventBridge = new EventBridge();
+const client = new EventBridgeClient();
 
 module.exports.handler = async (event) => {
-    let body = JSON.parse(event.body);
+    let body;
+    try {
+        body = JSON.parse(event.body);
+    } catch (error) {
+        console.error("Error parsing event body:", error);
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Invalid request body" })
+        };
+    }
 
-    let entry = {
+    const entry = {
         EventBusName: EVENT_BUS_NAME,
         Detail: JSON.stringify({
-            vehicleNo: body.vehicleNo, //"CVX-4000",
-            NIC: body.nic //"23457890S"
+            vehicleNo: body.vehicleNo,
+            NIC: body.nic
         }),
         Source: "fuel-app",
         DetailType: "user-signup"
-    }
+    };
 
     try {
-        let output = await eventBridge.putEvents({ Entries: [entry] }).promise()
-    } catch(err) {
-        console.log(err);
+        const command = new PutEventsCommand({ Entries: [entry] });
+        const output = await client.send(command);
+        
+        return {
+            statusCode: 200,
+            body: JSON.stringify(output)
+        };
+    } catch (error) {
+        console.error("Error putting event:", error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: "Failed to process request" })
+        };
     }
-
-    return {
-        statusCode: 200,
-        body: JSON.stringify(output)
-    }
-}
+};

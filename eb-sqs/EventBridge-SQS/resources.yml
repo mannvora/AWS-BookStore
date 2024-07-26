@@ -1,6 +1,50 @@
-## EventBridge eventbus
-
-EventBus: 
+EventBus:
   Type: AWS::Events::EventBus
   Properties:
     Name: QR_EVENT_BUS
+
+TargetSQS:
+  Type: AWS::SQS::Queue
+  Properties:
+    QueueName: QR_MESSAGE_QUEUE
+
+TargetSQSRule:
+  Type: AWS::Events::Rule
+  Properties:
+    EventBusName: !Ref EventBus
+    EventPattern:
+      source:
+        - "fuel-app"
+      detail-type:
+        - "user-signup"
+    Targets:
+      - Arn: !GetAtt TargetSQS.Arn
+        Id: qr-stage-bus-target-sqs-${sls:stage}
+
+TargetSQSPolicy:
+  Type: AWS::SQS::QueuePolicy
+  Properties:
+    Queues:
+      - !Ref TargetSQS
+    PolicyDocument:
+      Version: "2012-10-17"
+      Statement:
+        - Effect: "Allow"
+          Action:
+            - "sqs:SendMessage"
+          Resource: !GetAtt TargetSQS.Arn
+          Principal: 
+            Service: events.amazonaws.com
+
+
+// Important things to know about SQS:
+// Batch Processing using SQS 
+// If there are too many messages in SQS as compared to the batch size of lambda, then also concurrent lambdas will be generated
+// Use reserved concurrency to limit these concurrent lambdas
+// Lambda does long polling if no. of messages are less than batch size
+// Maximum Batching Window indicates how long should lambda wait for messages before starting the execution
+// Queue visibility timeout = If Lambda takes more than visibility timeout time then that message will re-appear in queue
+// Recommended value = Visibility Timeout = 6 * Lambda Timeout + max batching window
+// In case of partial failures, if not handled properly then all the messages will be sent to SQS 
+// (Track failed messages and put them into ReportBatchItemFailures then send those to SQS)
+// Create a DLQ to checkout continuously  failing messages
